@@ -237,7 +237,7 @@ def send_email_notification(subject: str, body: str) -> None:
         return
     if SMTP_PORT == 25:
         logger.error(
-            "Port 25 is blocked on this VPS. Set SMTP_PORT to 587 or 465."
+            "Port 25 is not supported and may be blocked. Set SMTP_PORT to 587 or 465."
         )
         return
 
@@ -448,6 +448,11 @@ def run_session(session_name: str) -> None:
 def _schedule_session(session_name: str) -> None:
     """Schedule *session_name* at a random minute within its hour range."""
     time_range = SESSION_CONFIG[session_name]["time_range"]
+    if time_range[1] <= time_range[0]:
+        logger.error(
+            "%s: invalid time_range %s (end must be > start)", session_name, time_range
+        )
+        return
     minute = random.randint(0, 59)
     hour = random.randint(time_range[0], time_range[1] - 1)
     session_time = f"{hour:02d}:{minute:02d}"
@@ -503,7 +508,7 @@ def main() -> None:
     # Validate SMTP port
     if SMTP_ENABLED and SMTP_PORT == 25:
         logger.error(
-            "SMTP_PORT=25 is blocked on this VPS. Set SMTP_PORT to 587 or 465."
+            "SMTP_PORT=25 is not supported and may be blocked. Set SMTP_PORT to 587 or 465."
         )
         sys.exit(1)
 
